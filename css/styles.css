@@ -1,0 +1,1074 @@
+/* ============================================================================
+ * C TIR DIGITAL v5.0 — Mrt P 120 mm M2 RAIADO (MANUAL C 23-95)
+ * Folha de Estilos Principal (Desktop + Mobile 360px–412px+ + Modo Noturno)
+ * ============================================================================ */
+
+:root {
+  --bg-main: #0f1419;
+  --bg-header: #0b0f13;
+  --bg-panel: #161d24;
+  --bg-card: #1d2630;
+  --bg-input: #10161c;
+  --border: #2c3947;
+  --text-main: #e6edf3;
+  --text-muted: #8b9bb0;
+  --accent: #3fb950;
+  --accent-bg: #238636;
+  --accent-blue: #58a6ff;
+  --warn: #d29922;
+  --danger: #f85149;
+  --cmd-text: #aff5b4;
+  --shadow-elev: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --font-mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --touch-min: 44px;
+}
+
+/* MODO NOTURNO (LUZ VERMELHA TÁTICA — PRESERVAÇÃO DE VISÃO NOTURNA) */
+body.night-mode {
+  --bg-main: #080202;
+  --bg-header: #050101;
+  --bg-panel: #100404;
+  --bg-card: #180606;
+  --bg-input: #0b0202;
+  --border: #4a1212;
+  --text-main: #ff5555;
+  --text-muted: #b83b3b;
+  --accent: #ff3b3b;
+  --accent-bg: #6e1111;
+  --accent-blue: #ff7b7b;
+  --warn: #ff8c42;
+  --danger: #ff2a2a;
+  --cmd-text: #ff6b6b;
+}
+
+body.night-mode .leaflet-tile-pane {
+  filter: brightness(0.45) sepia(1) hue-rotate(-50deg) saturate(4) contrast(1.2);
+}
+
+body.night-mode .leaflet-control-layers,
+body.night-mode .leaflet-control-zoom a {
+  background: #180606 !important;
+  color: #ff5555 !important;
+  border-color: #4a1212 !important;
+}
+
+/* RESET & BASE */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-main);
+  color: var(--text-main);
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overscroll-behavior-y: none;
+}
+
+/* SCROLLBARS TÁTICAS */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================================================
+ * CABEÇALHO SUPERIOR (TOPBAR)
+ * ============================================================================ */
+header {
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 30;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.badge-eb {
+  background: var(--accent-bg);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.brand h1 {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand span {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* BOTÕES PADRÃO E ESTADOS TÁTICOS */
+.btn {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.08s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.btn:hover {
+  border-color: var(--accent-blue);
+  filter: brightness(1.15);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn.active {
+  background: #1f6feb;
+  border-color: #58a6ff;
+  color: #fff;
+}
+
+body.night-mode .btn.active {
+  background: #7a1414;
+  border-color: #ff5555;
+  color: #ffcccc;
+}
+
+.btn.primary {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.danger {
+  background: #8e1e1b;
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn.warn {
+  background: rgba(210, 153, 34, 0.18);
+  border-color: var(--warn);
+  color: #f2cc60;
+}
+
+.btn.tutorial-btn {
+  border-color: var(--warn);
+  color: #f2cc60;
+}
+
+body.night-mode .btn.tutorial-btn {
+  color: #ff8c42;
+}
+
+.btn.speaking {
+  background: #1f6feb;
+  border-color: #58a6ff;
+  color: #fff;
+  animation: pulseSoft 1.4s infinite;
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+/* ============================================================================
+ * LAYOUT PRINCIPAL (WORKSPACE 3 COLUNAS DESKTOP -> EMPILHADO MOBILE)
+ * ============================================================================ */
+.workspace {
+  display: grid;
+  grid-template-columns: 350px 1fr 465px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (max-width: 1380px) {
+  .workspace {
+    grid-template-columns: 320px 1fr 435px;
+  }
+}
+
+.sidebar {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar.right {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+/* CARDS & FORMULÁRIOS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 9px;
+  position: relative;
+}
+
+.card-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent-blue);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.field label {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.field input,
+.field select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  width: 100%;
+  min-width: 0;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.18);
+}
+
+/* PÍLULAS DE STATUS DE API / SENSORES / TRÊS NORTES */
+.api-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.api-pill.online {
+  border-color: var(--accent);
+  color: var(--cmd-text);
+  background: rgba(63, 185, 80, 0.14);
+}
+
+.api-pill.cached {
+  border-color: var(--warn);
+  color: #f2cc60;
+  background: rgba(210, 153, 34, 0.14);
+}
+
+.api-pill.offline {
+  border-color: var(--danger);
+  color: #ffa198;
+  background: rgba(248, 81, 73, 0.14);
+}
+
+.norths-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.norths-strip strong {
+  color: var(--text-main);
+}
+
+/* CAIXAS EXPANSÍVEIS (POLAR OA & BÚSSOLA TÁTICA) */
+.polar-box,
+.compass-box {
+  display: none;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px dashed var(--accent-blue);
+  border-radius: 5px;
+  padding: 7px;
+  margin-bottom: 6px;
+}
+
+.polar-box.open,
+.compass-box.open {
+  display: block;
+}
+
+.compass-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 5px 0;
+  font-family: var(--font-mono);
+}
+
+.compass-mil-big {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+ * ÁREA CENTRAL DO MAPA & PRANCHETA OFFLINE 1:25.000
+ * ============================================================================ */
+.map-container {
+  position: relative;
+  background: #0b1015;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 360px;
+}
+
+#map {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+#tacticalCanvas {
+  display: none;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: #0d131a;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* BARRA DE FERRAMENTAS DO MAPA (SEM COLIDIR COM CONTROLES DO LEAFLET) */
+.map-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 52px;
+  right: 52px;
+  z-index: 520;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: rgba(15, 20, 25, 0.93);
+  backdrop-filter: blur(4px);
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-elev);
+}
+
+.pin-btn {
+  font-size: 10.5px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.pin-btn:hover {
+  border-color: var(--accent-blue);
+}
+
+.pin-btn.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pin-btn.locked {
+  background: rgba(210, 153, 34, 0.22);
+  border-color: var(--warn);
+  color: #f2cc60;
+}
+
+/* BUSCA GEOCODING (NOMINATIM) */
+.geo-search-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  min-width: 155px;
+}
+
+.geo-search-group input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  width: 135px;
+}
+
+.geo-search-group input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+/* BANNER CRÍTICO DE EXTRAPOLAÇÃO DE ALCANCE */
+@keyframes pulseRangeAlert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.75); }
+  50% { box-shadow: 0 0 18px 4px rgba(248, 81, 73, 0.95); }
+}
+
+#outOfRangeBanner {
+  display: none;
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 650;
+  background: rgba(142, 24, 21, 0.96);
+  border: 2px solid #ff7b72;
+  color: #ffffff;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+  max-width: calc(100% - 28px);
+  animation: pulseRangeAlert 1.5s infinite;
+  pointer-events: none;
+}
+
+/* CONTROLES DE ZOOM / ENQUADRAMENTO DA PRANCHETA OFFLINE */
+.grid-controls {
+  display: none;
+  position: absolute;
+  top: 56px;
+  right: 10px;
+  z-index: 550;
+  background: rgba(15, 20, 25, 0.93);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  gap: 4px;
+  align-items: center;
+  box-shadow: var(--shadow-elev);
+}
+
+/* HUD INFERIOR DO MAPA */
+.map-hud {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 510;
+  background: rgba(15, 20, 25, 0.93);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 9px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ============================================================================
+ * TABELA DE ELEMENTOS DE TIRO (COM COLUNA FIXA NO MOBILE)
+ * ============================================================================ */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+}
+
+th, td {
+  border-bottom: 1px solid var(--border);
+  padding: 5px 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+th {
+  color: var(--text-muted);
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+th:first-child,
+td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+}
+
+tr.base-piece {
+  background: rgba(63, 185, 80, 0.14);
+}
+tr.base-piece td:first-child {
+  background: #1b3326;
+}
+body.night-mode tr.base-piece td:first-child {
+  background: #2b0909;
+}
+
+tr.row-oob {
+  background: rgba(248, 81, 73, 0.15);
+}
+tr.row-oob td:first-child {
+  background: #381619;
+}
+
+.val-highlight { color: var(--accent); font-weight: 700; font-size: 11px; }
+.val-warn { color: var(--warn); font-weight: 700; }
+.val-danger { color: var(--danger); font-weight: 700; }
+
+/* ============================================================================
+ * COMANDO DE TIRO, ALERTAS DE SEGURANÇA, ALVOS E LOGS
+ * ============================================================================ */
+.fire-command-box {
+  background: var(--bg-input);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 9px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.48;
+  color: var(--cmd-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.fire-command-box.blocked {
+  border-color: var(--danger);
+  background: rgba(142, 24, 21, 0.18);
+}
+
+.alert-box {
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  border-left: 4px solid;
+  line-height: 1.38;
+}
+
+.alert-ok {
+  background: rgba(63, 185, 80, 0.12);
+  border-color: var(--accent);
+  color: var(--cmd-text);
+}
+
+.alert-warn {
+  background: rgba(210, 153, 34, 0.15);
+  border-color: var(--warn);
+  color: #f2cc60;
+}
+
+.alert-danger {
+  background: rgba(248, 81, 73, 0.18);
+  border-color: var(--danger);
+  color: #ffa198;
+}
+
+.target-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 115px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.target-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  gap: 4px;
+}
+
+.target-item:hover {
+  border-color: var(--accent-blue);
+}
+
+.log-list {
+  max-height: 125px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-item {
+  background: var(--bg-input);
+  padding: 5px 6px;
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-blue);
+  line-height: 1.35;
+}
+
+/* MARCADORES PERSONALIZADOS NO MAPA LEAFLET */
+.tac-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 10.5px;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.tac-pin-saved {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9px;
+  color: #fff;
+  background: #8957e5;
+  border: 1px solid #fff;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+.tac-callout {
+  background: rgba(15, 20, 25, 0.94);
+  border: 1.5px solid #f85149;
+  color: #ffa198;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+
+.tac-callout.warn {
+  border-color: #d29922;
+  color: #f2cc60;
+}
+
+/* ============================================================================
+ * TUTORIAL INTERATIVO SPOTLIGHT (DESKTOP + MOBILE SAFE)
+ * ============================================================================ */
+#tutorialLayer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: auto;
+}
+
+#tutorialSpotlight {
+  position: fixed;
+  border-radius: 8px;
+  border: 2px solid #3fb950;
+  box-shadow: 0 0 0 9999px rgba(4, 7, 11, 0.84), 0 0 22px rgba(63, 185, 80, 0.65);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 9991;
+}
+
+#tutorialCard {
+  position: fixed;
+  width: 380px;
+  max-width: calc(100vw - 20px);
+  background: #161d24;
+  border: 1px solid #3fb950;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.88);
+  z-index: 9995;
+  color: #e6edf3;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tut-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tut-step-badge {
+  background: #238636;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.4px;
+}
+
+.tut-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #58a6ff;
+  margin-bottom: 6px;
+}
+
+.tut-body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d0d7de;
+  margin-bottom: 10px;
+}
+
+.tut-tip {
+  background: rgba(63, 185, 80, 0.12);
+  border-left: 3px solid #3fb950;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #aff5b4;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.tut-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border-top: 1px solid #2c3947;
+  padding-top: 9px;
+}
+
+.tut-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8b9bb0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tut-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================================
+ * RESPONSIVIDADE MOBILE & TABLET (360px – 1024px)
+ * - Inputs >= 16px para evitar auto-zoom no iOS Safari e Android Chrome
+ * - Áreas de toque >= 44px
+ * - Barra do mapa com rolagem horizontal sem sobrepor botões ou banners
+ * ============================================================================ */
+@media (max-width: 1024px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+
+  .sidebar.right {
+    border-left: none;
+  }
+
+  .map-container {
+    height: 460px;
+    min-height: 420px;
+  }
+
+  /* Evita zoom automático do navegador ao tocar em inputs no celular */
+  .field input,
+  .field select,
+  .geo-search-group input,
+  #newTargetName {
+    font-size: 16px !important;
+    min-height: var(--touch-min);
+    padding: 8px 9px;
+  }
+
+  .field label {
+    font-size: 10.5px;
+  }
+
+  /* Áreas de toque confortáveis */
+  .btn,
+  .pin-btn {
+    min-height: var(--touch-min);
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+
+  .map-toolbar {
+    left: 8px;
+    right: 8px;
+    top: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 5px;
+  }
+
+  .map-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Desloca controles nativos do Leaflet para baixo da barra horizontal */
+  .map-container .leaflet-top {
+    top: 60px;
+  }
+
+  #outOfRangeBanner {
+    top: 64px;
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .grid-controls {
+    top: 64px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 8px;
+  }
+
+  .brand h1 {
+    font-size: 12.5px;
+  }
+
+  .brand span {
+    font-size: 9.5px;
+  }
+
+  .top-controls {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .top-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-container {
+    height: 390px;
+    min-height: 360px;
+  }
+
+  .map-hud {
+    font-size: 9.5px;
+    padding: 5px 7px;
+  }
+
+  /* Em telas muito estreitas (360px–412px), grids de 4 colunas viram 2x2 */
+  .grid-4 {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  #tutorialCard {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    bottom: 10px !important;
+    top: auto !important;
+    padding: 12px;
+  }
+}
+
+/* ============================================================================
+ * IMPRESSÃO A4 (FICHA DO CALCULADOR)
+ * ============================================================================ */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    height: auto;
+    overflow: visible;
+  }
+
+  header .top-controls,
+  .map-container,
+  #tutorialLayer,
+  .btn,
+  .polar-box,
+  .compass-box {
+    display: none !important;
+  }
+
+  .workspace {
+    display: block;
+  }
+
+  .sidebar {
+    border: none;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .card {
+    border: 1px solid #888;
+    background: #fff;
+    color: #000;
+    break-inside: avoid;
+    margin-bottom: 8px;
+  }
+
+  .fire-command-box {
+    border: 1px solid #000;
+    color: #000;
+    background: #f8f8f8;
+  }
+}

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#0b0f13" />
+  <title>C Tir Digital v5.0 — Mrt P 120 mm M2 Raiado (C 23-95)</title>
+
+  <!-- Leaflet CSS (Mapa Tático Online com Fallback para Prancheta Offline 1:25.000) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- Folha de Estilos Principal (Desktop + Mobile 360px–412px+ + Modo Noturno) -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- ========================================================================
+       CABEÇALHO SUPERIOR (TOPBAR)
+       ======================================================================== -->
+  <header>
+    <div class="brand">
+      <span class="badge-eb">EB • C 23-95</span>
+      <div>
+        <h1>C TIR DIGITAL v5.0 — Mrt P 120 mm M2 RAIADO</h1>
+        <span>Central de Tiro • SIRGAS 2000 UTM • 6400''' • Balística &amp; Relevo</span>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <button id="btnToggleMapMode" class="btn" type="button" title="Alternar entre Mapa Satélite/Topográfico e Prancheta Offline 1:25.000">
+        🗺️ Prancheta Offline
+      </button>
+      <button id="btnNightMode" class="btn" type="button" title="Ativar Luz Vermelha Tática para preservação da visão noturna">
+        🔴 Visão Noturna
+      </button>
+      <button id="btnWakeLock" class="btn" type="button" title="Manter a tela do dispositivo sempre acesa durante a missão">
+        ☀️ Tela Ativa
+      </button>
+      <button id="btnExportJson" class="btn" type="button" title="Exportar missão completa e concentrações em JSON">
+        💾 Exportar
+      </button>
+      <button id="btnImportJson" class="btn" type="button" title="Importar arquivo JSON de missão salva">
+        📂 Importar
+      </button>
+      <input id="importJsonInput" type="file" accept=".json,application/json" hidden />
+      <button id="btnPrintSheet" class="btn" type="button" title="Imprimir Ficha do Calculador em A4">
+        🖨️ Ficha A4
+      </button>
+      <button id="btnTutorial" class="btn tutorial-btn" type="button" title="Abrir guia interativo passo a passo">
+        🎓 Tutorial
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       ÁREA DE TRABALHO PRINCIPAL (3 COLUNAS DESKTOP / EMPILHADA MOBILE)
+       ======================================================================== -->
+  <main class="workspace">
+    <!-- ======================================================================
+         COLUNA ESQUERDA: DADOS TOPOGRÁFICOS, MUNIÇÃO, METEOROLOGIA E SEGURANÇA
+         ====================================================================== -->
+    <aside class="sidebar left">
+      <!-- CARD 1: POSIÇÃO DA LINHA DE FOGO, ALVO & TRÊS NORTES -->
+      <section id="cardPosition" class="card">
+        <div class="card-title">
+          <span>📍 Posição, Alvo &amp; Três Nortes</span>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <span id="pillGeoStatus" class="api-pill">UTM MANUAL</span>
+            <button id="btnCaptureGps" class="btn" type="button" title="Capturar coordenada atual via GPS do dispositivo em UTM">
+              📡 GPS
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="basePieceSelect">Peça Base</label>
+            <select id="basePieceSelect">
+              <option value="0">1ª Peça</option>
+              <option value="1" selected>2ª Peça (Base)</option>
+              <option value="2">3ª Peça</option>
+              <option value="3">4ª Peça</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="utmZone">Fuso UTM</label>
+            <select id="utmZone">
+              <option value="18">18 (Oeste AM)</option>
+              <option value="19">19 (AM/RO/RR)</option>
+              <option value="20">20 (AM/MT/RO)</option>
+              <option value="21" selected>21 (RS/MS/MT)</option>
+              <option value="22">22 (RS/SC/PR/SP/GO)</option>
+              <option value="23">23 (RJ/MG/SP/BA/DF)</option>
+              <option value="24">24 (BA/ES/PE/CE)</option>
+              <option value="25">25 (RN/PB/PE/AL)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="utmHemi">Hemisfério</label>
+            <select id="utmHemi">
+              <option value="S" selected>Sul (S)</option>
+              <option value="N">Norte (N)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- COORDENADAS DA PEÇA BASE -->
+        <div class="grid-3" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="baseE">Peça Base E (m)</label>
+            <input id="baseE" type="number" step="1" value="698450" />
+          </div>
+          <div class="field">
+            <label for="baseN">Peça Base N (m)</label>
+            <input id="baseN" type="number" step="1" value="6652300" />
+          </div>
+          <div class="field">
+            <label for="baseAlt">Cota Peça (m)</label>
+            <input id="baseAlt" type="number" step="1" value="132" />
+          </div>
+        </div>
+
+        <!-- FORMAÇÃO DA LINHA DE FOGO -->
+        <div class="grid-3" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="pieceInterval">Intervalo Pç (m)</label>
+            <input id="pieceInterval" type="number" min="10" max="200" step="1" value="35" />
+          </div>
+          <div class="field">
+            <label for="frontAzimuth">Dir. Frente (''')</label>
+            <input id="frontAzimuth" type="number" min="0" max="6399" step="1" value="1600" />
+          </div>
+          <div class="field">
+            <label for="sheafType">Feixe</label>
+            <select id="sheafType">
+              <option value="parallel" selected>Paralelo</option>
+              <option value="convergent">Convergente</option>
+              <option value="open">Aberto (35 m)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- COORDENADAS DO ALVO -->
+        <div class="grid-3" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="targetE">Alvo E (m)</label>
+            <input id="targetE" type="number" step="1" value="701820" />
+          </div>
+          <div class="field">
+            <label for="targetN">Alvo N (m)</label>
+            <input id="targetN" type="number" step="1" value="6655940" />
+          </div>
+          <div class="field">
+            <label for="targetAlt">Cota Alvo (m)</label>
+            <input id="targetAlt" type="number" step="1" value="168" />
+          </div>
+        </div>
+
+        <!-- OS TRÊS NORTES (NQ / NV / NM) -->
+        <div class="grid-3">
+          <div class="field">
+            <label for="magDeclination">Decl. Mag. QM (''')</label>
+            <input id="magDeclination" type="number" step="1" value="-312" title="Negativo = Oeste (W), Positivo = Leste (E) em milésimos" />
+          </div>
+          <div class="field">
+            <label for="meridianConv">Conv. Merid. C (''')</label>
+            <input id="meridianConv" type="number" step="1" value="-14" title="Convergência de Meridianos calculada automaticamente pela posição UTM" />
+          </div>
+          <div class="field">
+            <label for="northRefSelect">Entrada Azimutes</label>
+            <select id="northRefSelect" title="Referência angular usada ao digitar azimutes de bússola ou vento">
+              <option value="NQ" selected>Norte Quadrícula (NQ)</option>
+              <option value="NV">Norte Verdadeiro (NV)</option>
+              <option value="NM">Norte Magnético (NM)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="norths-strip">
+          <span id="northsReadout">NQ 0''' | NV <strong>+14'''</strong> | NM <strong>+326'''</strong></span>
+          <button id="btnFetchNoaa" class="btn" type="button" style="padding:2px 6px; font-size:10px;" title="Consultar Declinação Magnética atual via NOAA">
+            🧲 QM Auto
+          </button>
+        </div>
+      </section>
+
+      <!-- CARD 2: MUNIÇÃO, CARGA & ESPOLETA -->
+      <section id="cardAmmo" class="card">
+        <div class="card-title">
+          <span>💣 Munição, Carga &amp; Espoleta</span>
+          <span class="api-pill">C 23-95</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="ammoType">Granada (120 mm)</label>
+            <select id="ammoType">
+              <option value="CONV" selected>AE Convencional (M44 / PR)</option>
+              <option value="PR">AE Grande Capacidade (PR)</option>
+              <option value="PRPA">AE Prop. Adicional (PRPA 12,6 km)</option>
+              <option value="FUM">Fumígena (WP / HC)</option>
+              <option value="ILUM">Iluminativa (Paraquedas)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="chargeSelect">Carga de Projeção</label>
+            <select id="chargeSelect">
+              <option value="AUTO" selected>Automática (Ótima)</option>
+              <option value="0">Carga 0 (Cartucho Base)</option>
+              <option value="1">Carga 1</option>
+              <option value="2">Carga 2</option>
+              <option value="3">Carga 3</option>
+              <option value="4">Carga 4</option>
+              <option value="5">Carga 5</option>
+              <option value="6">Carga 6</option>
+              <option value="7">Carga 7</option>
+              <option value="8">Carga 8</option>
+              <option value="9">Carga 9 (PRPA Máx)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <div class="field">
+            <label for="fuzeType">Espoleta</label>
+            <select id="fuzeType">
+              <option value="INST" selected>Instantânea</option>
+              <option value="RET">Retardo</option>
+              <option value="PROX">Proximidade</option>
+              <option value="TMP">Tempo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fuzeTime">Grad. Tempo (s)</label>
+            <input id="fuzeTime" type="number" min="0" max="90" step="0.1" value="0.0" />
+          </div>
+          <div class="field">
+            <label for="projWeightVar">Peso Gr (□)</label>
+            <select id="projWeightVar" title="Marcação de quadrados de peso pintados na ogiva">
+              <option value="-2">-2 □ (Leve)</option>
+              <option value="-1">-1 □</option>
+              <option value="0" selected>0 □ (Padrão)</option>
+              <option value="1">+1 □</option>
+              <option value="2">+2 □ (Pesada)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="propTemp">Temp. Prop (°C)</label>
+            <input id="propTemp" type="number" min="-20" max="60" step="1" value="21" />
+          </div>
+        </div>
+      </section>
+
+      <!-- CARD 3: METEOROLOGIA BALÍSTICA & DENSIDADE REAL -->
+      <section id="cardMeteo" class="card">
+        <div class="card-title">
+          <span>🌬️ Meteorologia Balística</span>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <span id="pillMeteoStatus" class="api-pill">PADRÃO ISA</span>
+            <button id="btnFetchMeteo" class="btn primary" type="button" title="Obter vento de superfície, vento balístico em altitude, temperatura e pressão real via Open-Meteo">
+              ☁️ Puxar Meteo
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-4" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="windDir">Vento Sup (''')</label>
+            <input id="windDir" type="number" min="0" max="6399" step="1" value="0" title="Direção de onde sopra o vento de superfície" />
+          </div>
+          <div class="field">
+            <label for="windSpeed">Vel Sup (kt)</label>
+            <input id="windSpeed" type="number" min="0" max="120" step="0.5" value="0" />
+          </div>
+          <div class="field">
+            <label for="windBalDir">Vento Alt (''')</label>
+            <input id="windBalDir" type="number" min="0" max="6399" step="1" value="0" title="Vento balístico ponderado na camada da flecha" />
+          </div>
+          <div class="field">
+            <label for="windBalSpeed">Vel Alt (kt)</label>
+            <input id="windBalSpeed" type="number" min="0" max="150" step="0.5" value="0" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="airTemp">Temperatura do Ar (°C)</label>
+            <input id="airTemp" type="number" min="-30" max="55" step="0.5" value="15" />
+          </div>
+          <div class="field">
+            <label for="airPressure">Pressão Barométrica Real (hPa)</label>
+            <input id="airPressure" type="number" min="650" max="1060" step="0.5" value="997" title="Pressão real na cota da posição (surface_pressure)" />
+          </div>
+        </div>
+
+        <div class="norths-strip">
+          <span id="meteoDensityReadout">Densidade ρ: <strong>100.0%</strong></span>
+          <span id="meteoWindCompReadout">VL: <strong>0.0 kt</strong> | VT: <strong>0.0 kt</strong></span>
+        </div>
+      </section>
+
+      <!-- CARD 4: SEGURANÇA, CRISTA INTERMEDIÁRIA (57%) & TSZ -->
+      <section id="cardSafety" class="card">
+        <div class="card-title">
+          <span>⛰️ Relevo, Crista (57%) &amp; TSZ</span>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <span id="pillTerrainStatus" class="api-pill">MANUAL</span>
+            <button id="btnScanTerrain" class="btn" type="button" title="Varrer perfil de elevação em lote entre Peça Base e Alvo via Open-Meteo Elevation">
+              📈 Varrer Relevo
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:5px;">
+          <div class="field">
+            <label for="crestDist">Dist. Peça–Crista (m)</label>
+            <input id="crestDist" type="number" min="0" max="13000" step="10" value="0" />
+          </div>
+          <div class="field">
+            <label for="crestAlt">Cota da Crista (m)</label>
+            <input id="crestAlt" type="number" min="-50" max="4000" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="grid-4" style="margin-bottom:6px;">
+          <div class="field">
+            <label for="friendlyE">Tropas E (m)</label>
+            <input id="friendlyE" type="number" step="1" placeholder="Opcional" />
+          </div>
+          <div class="field">
+            <label for="friendlyN">Tropas N (m)</label>
+            <input id="friendlyN" type="number" step="1" placeholder="Opcional" />
+          </div>
+          <div class="field">
+            <label for="friendlyAlt">Cota Tr (m)</label>
+            <input id="friendlyAlt" type="number" step="1" value="140" />
+          </div>
+          <div class="field">
+            <label for="friendlyRadius">TSZ Raio (m)</label>
+            <input id="friendlyRadius" type="number" min="100" max="2000" step="25" value="400" />
+          </div>
+        </div>
+
+        <!-- MINI-PERFIL DE TRAJETÓRIA ASSIMÉTRICA E RELEVO -->
+        <canvas id="profileCanvas" width="320" height="72" style="width:100%; height:72px; background:var(--bg-input); border:1px solid var(--border); border-radius:4px; display:block;"></canvas>
+      </section>
+    </aside>
+
+    <!-- ======================================================================
+         ÁREA CENTRAL: MAPA TÁTICO INTERATIVO & PRANCHETA OFFLINE 1:25.000
+         ====================================================================== -->
+    <section class="map-container" id="mapSection">
+      <!-- BARRA DE FERRAMENTAS TÁTICAS (SEM SOBREPOR CAMADAS OU BANNERS) -->
+      <div class="map-toolbar" id="mapToolbar">
+        <button class="pin-btn selected" type="button" data-tool="target" title="Clicar no mapa posiciona o Alvo">
+          🎯 Alvo
+        </button>
+        <button class="pin-btn" type="button" data-tool="base" title="Clicar no mapa posiciona a Peça Base">
+          💣 Peça Base
+        </button>
+        <button class="pin-btn" type="button" data-tool="oa" title="Clicar no mapa posiciona o Observador Avançado (OA)">
+          🔭 OA
+        </button>
+        <button class="pin-btn" type="button" data-tool="crest" title="Clicar no mapa marca a Crista Intermediária">
+          ⛰️ Crista
+        </button>
+        <button class="pin-btn" type="button" data-tool="friendly" title="Clicar no mapa posiciona Tropas Amigas (TSZ)">
+          🛡️ Tropas
+        </button>
+        <button id="btnLockPins" class="pin-btn" type="button" title="Travar/Destravar arraste acidental dos pinos no mapa">
+          🔓 Pinos Livres
+        </button>
+        <button id="btnCenterMap" class="pin-btn" type="button" title="Enquadrar Linha de Fogo e Alvo no centro">
+          ⌖ Enquadrar
+        </button>
+
+        <!-- BUSCA DE LOCALIDADE (NOMINATIM GEOCODING) -->
+        <div class="geo-search-group">
+          <input id="geoSearchInput" type="text" placeholder="Buscar local/cidade..." aria-label="Buscar localidade no mapa" />
+          <button id="btnGeoSearch" class="btn" type="button" style="padding:3px 7px;" title="Buscar coordenadas por nome">
+            🔍
+          </button>
+        </div>
+      </div>
+
+      <!-- BANNER CRÍTICO DE EXTRAPOLAÇÃO DE ALCANCE / CRISTA BLOQUEADA -->
+      <div id="outOfRangeBanner" role="alert">
+        ⚠️ ALVO FORA DO ALCANCE MÁXIMO DA MUNIÇÃO SELECIONADA!
+      </div>
+
+      <!-- CONTROLES DE ZOOM DA PRANCHETA OFFLINE 1:25.000 -->
+      <div class="grid-controls" id="gridControls">
+        <button id="btnGridZoomIn" class="btn" type="button" title="Aproximar Prancheta">+</button>
+        <button id="btnGridZoomOut" class="btn" type="button" title="Afastar Prancheta">−</button>
+        <button id="btnGridFit" class="btn" type="button" title="Ajustar Escala 1:25.000">1:25k</button>
+      </div>
+
+      <!-- MAPA LEAFLET -->
+      <div id="map"></div>
+
+      <!-- PRANCHETA TOPOGRÁFICA OFFLINE 1:25.000 -->
+      <canvas id="tacticalCanvas"></canvas>
+
+      <!-- HUD TELEMÉTRICO INFERIOR DO MAPA -->
+      <div class="map-hud">
+        <span id="hudUtm">UTM: 21J 701820E 6655940N</span>
+        <span id="hudDistAz">Dist: — m | Az NQ: —'''</span>
+        <span id="hudElev">Cota Cursor: — m</span>
+        <span id="hudPlaceName" style="color:var(--accent-blue); font-weight:700;">Setor Operacional</span>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         COLUNA DIREITA: ELEMENTOS DE TIRO, COMANDO DE TIRO, OA E ALVOS
+         ====================================================================== -->
+    <aside class="sidebar right">
+      <!-- CARD 5: ELEMENTOS DE TIRO DA SEÇÃO (4 PEÇAS) -->
+      <section id="cardFiringTable" class="card">
+        <div class="card-title">
+          <span>📊 Elementos de Tiro — Seção (4 Peças)</span>
+          <span id="summaryFactorK" class="api-pill online">Fator K: +0.0%</span>
+        </div>
+
+        <div class="norths-strip" style="margin-top:0; margin-bottom:6px;">
+          <span>Dist: <strong id="summaryDist">— m</strong></span>
+          <span>Az NQ: <strong id="summaryAz">—'''</strong></span>
+          <span>Carga: <strong id="summaryCharge">—</strong></span>
+          <span>Flecha: <strong id="summaryApex">— m</strong></span>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Peça</th>
+                <th>Dist (m)</th>
+                <th>Az NQ</th>
+                <th>Deriva</th>
+                <th>Luneta</th>
+                <th>Alça</th>
+                <th>Sítio</th>
+                <th>ELV</th>
+                <th>Voo (s)</th>
+              </tr>
+            </thead>
+            <tbody id="piecesTableBody">
+              <!-- Preenchido dinamicamente por js/6-app-ui.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CARD 6: COMANDO DE TIRO, VOZ MILITAR & ALERTAS DE SEGURANÇA -->
+      <section id="cardFireCommand" class="card">
+        <div class="card-title">
+          <span>📻 Comando de Tiro &amp; Segurança</span>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button id="btnSpeakCmd" class="btn" type="button" title="Ler Comando de Tiro em voz alta na fonética militar (Web Speech API)">
+              🔊 Falar
+            </button>
+            <button id="btnCopyCmd" class="btn" type="button" title="Copiar Comando de Tiro para área de transferência">
+              📋 Copiar
+            </button>
+            <button id="btnShareMission" class="btn" type="button" title="Compartilhar dados da missão via WhatsApp/Telegram/Sistema">
+              📤 Enviar
+            </button>
+          </div>
+        </div>
+
+        <div id="safetyAlertsBox" style="margin-bottom:6px;"></div>
+
+        <div id="fireCommandBox" class="fire-command-box">
+          Aguardando cálculo inicial...
+        </div>
+      </section>
+
+      <!-- CARD 7: CONDUTA DO FOGO (OA), BÚSSOLA 6400''' E VOZ -->
+      <section id="cardConduct" class="card">
+        <div class="card-title">
+          <span>🔭 Conduta OA, Bússola &amp; Regulação</span>
+          <button id="btnVoiceInput" class="btn" type="button" title="Ditar correções do OA por voz (ex: 'Direita cem, alongar duzentos')">
+            🎙️ Ditar OA
+          </button>
+        </div>
+
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px;">
+          <button id="btnTogglePolar" class="btn active" type="button" style="flex:1;">
+            📐 Polar &amp; Correções OA
+          </button>
+          <button id="btnToggleCompass" class="btn" type="button" style="flex:1;">
+            🧭 Bússola 6400'''
+          </button>
+        </div>
+
+        <div id="voiceTranscript" style="display:none; font-family:var(--font-mono); font-size:10px; color:var(--cmd-text); background:var(--bg-input); border:1px dashed var(--accent); border-radius:4px; padding:4px 6px; margin-bottom:6px;"></div>
+
+        <!-- PAINEL BÚSSOLA TÁTICA EM MILÉSIMOS -->
+        <div id="compassBox" class="compass-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--text-muted);">
+            <span>Azimute Magnético (NM) &rarr; Quadrícula (NQ)</span>
+            <span id="compassSensorStatus" class="api-pill">AGUARDANDO SENSOR</span>
+          </div>
+          <div class="compass-readout">
+            <div>
+              <div style="font-size:9px; color:var(--text-muted);">AZIMUTE NQ</div>
+              <div id="compassMilReadout" class="compass-mil-big">0000'''</div>
+            </div>
+            <div style="text-align:right; font-size:10px;">
+              <div>NM: <strong id="compassNmReadout">0000'''</strong></div>
+              <div>Graus: <strong id="compassDegReadout">0.0°</strong></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:5px;">
+            <button id="btnUseCompassOa" class="btn primary" type="button" style="flex:1;">
+              ↪ Usar no Lançamento OA
+            </button>
+            <button id="btnUseCompassFront" class="btn" type="button" style="flex:1;">
+              ↪ Usar na Frente Pç
+            </button>
+          </div>
+        </div>
+
+        <!-- PAINEL POLAR OA & REGULAÇÃO (FATOR K LONGITUDINAL) -->
+        <div id="polarBox" class="polar-box open">
+          <div class="grid-3" style="margin-bottom:5px;">
+            <div class="field">
+              <label for="oaE">OA Easting (m)</label>
+              <input id="oaE" type="number" step="1" value="700950" />
+            </div>
+            <div class="field">
+              <label for="oaN">OA Northing (m)</label>
+              <input id="oaN" type="number" step="1" value="6654400" />
+            </div>
+            <div class="field">
+              <label for="oaAlt">Cota OA (m)</label>
+              <input id="oaAlt" type="number" step="1" value="185" />
+            </div>
+          </div>
+
+          <div class="grid-3" style="margin-bottom:5px;">
+            <div class="field">
+              <label for="oaAz">Lançamento OA (''')</label>
+              <input id="oaAz" type="number" min="0" max="6399" step="1" value="520" />
+            </div>
+            <div class="field">
+              <label for="oaDist">Dist. OA–Alvo (m)</label>
+              <input id="oaDist" type="number" min="50" max="15000" step="1" value="1765" />
+            </div>
+            <div class="field">
+              <label for="oaSite">Sítio OA (''')</label>
+              <input id="oaSite" type="number" min="-800" max="800" step="1" value="-10" />
+            </div>
+          </div>
+
+          <button id="btnApplyPolar" class="btn" type="button" style="width:100%; margin-bottom:6px;">
+            📍 Calcular Alvo por Coordenadas Polares do OA
+          </button>
+
+          <div class="grid-3" style="margin-bottom:5px;">
+            <div class="field">
+              <label for="corrLR">+Dir / −Esq (m)</label>
+              <input id="corrLR" type="number" step="5" value="0" placeholder="Ex: +100" />
+            </div>
+            <div class="field">
+              <label for="corrAD">+Along / −Enc (m)</label>
+              <input id="corrAD" type="number" step="5" value="0" placeholder="Ex: -200" />
+            </div>
+            <div class="field">
+              <label for="corrUD">+Subir / −Baix (m)</label>
+              <input id="corrUD" type="number" step="5" value="0" placeholder="Ex: 0" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:5px;">
+            <button id="btnApplyCorrection" class="btn primary" type="button" style="flex:2;">
+              🎯 Aplicar Correção OA (Fator K)
+            </button>
+            <button id="btnResetFactorK" class="btn" type="button" style="flex:1;" title="Zerar Fator K acumulado">
+              ↺ Zerar K
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CARD 8: ALVOS REGISTRADOS (CONCENTRAÇÕES) & HISTÓRICO -->
+      <section id="cardTargets" class="card">
+        <div class="card-title">
+          <span>📌 Concentrações &amp; Ficha do Calculador</span>
+          <button id="btnClearLog" class="btn" type="button" style="padding:2px 6px; font-size:10px;">
+            Limpar Log
+          </button>
+        </div>
+
+        <div style="display:flex; gap:4px; margin-bottom:5px;">
+          <input
+            id="newTargetName"
+            type="text"
+            placeholder="Designação (ex: AB 1001)"
+            style="flex:1; background:var(--bg-input); border:1px solid var(--border); color:var(--text-main); padding:4px 7px; border-radius:4px; font-family:var(--font-mono); font-size:11.5px;"
+          />
+          <button id="btnSaveTarget" class="btn primary" type="button">
+            + Salvar Alvo
+          </button>
+        </div>
+
+        <div id="savedTargetsList" class="target-list"></div>
+
+        <div style="font-size:9.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin:7px 0 4px;">
+          Registro Cronológico de Missões
+        </div>
+        <div id="missionLogList" class="log-list"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ========================================================================
+       TUTORIAL INTERATIVO SPOTLIGHT (DESKTOP + MOBILE SAFE)
+       ======================================================================== -->
+  <div id="tutorialLayer" aria-modal="true" role="dialog">
+    <div id="tutorialSpotlight"></div>
+    <div id="tutorialCard">
+      <div class="tut-header">
+        <span id="tutStepBadge" class="tut-step-badge">PASSO 1 / 7</span>
+        <button id="tutCloseBtn" class="btn" type="button" style="padding:2px 7px;">✕</button>
+      </div>
+      <div id="tutTitle" class="tut-title">Bem-vindo à Central de Tiro Digital</div>
+      <div id="tutBody" class="tut-body"></div>
+      <div id="tutTip" class="tut-tip"></div>
+      <div class="tut-footer">
+        <label class="tut-checkbox">
+          <input id="tutDontShow" type="checkbox" />
+          Não exibir automaticamente na próxima abertura
+        </label>
+        <div class="tut-actions">
+          <button id="tutPrevBtn" class="btn" type="button">◀ Anterior</button>
+          <button id="tutNextBtn" class="btn primary" type="button">Próximo ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SCRIPTS MODULARES (ORDEM DE DEPENDÊNCIA)
+       ======================================================================== -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="js/1-tables-data.js"></script>
+  <script src="js/2-geo-math.js"></script>
+  <script src="js/3-ballistics.js"></script>
+  <script src="js/4-apis-sensors.js"></script>
+  <script src="js/5-map-canvas.js"></script>
+  <script src="js/6-app-ui.js"></script>
+</body>
+</html>
